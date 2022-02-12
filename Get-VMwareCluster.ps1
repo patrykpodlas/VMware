@@ -15,7 +15,7 @@ function Get-VMWareCluster {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, ParameterSetName = "Cluster")]
-        [string]$Cluster
+        [string[]]$Cluster
     )
 
     begin {
@@ -25,12 +25,14 @@ function Get-VMWareCluster {
     }
 
     process {
-        foreach ($VMHost in Get-Cluster -Name $Cluster | Get-VMHost) {
-            $vCPU = Get-VM -Location $VMHost | Measure-Object -Property NumCpu -Sum | Select-Object -ExpandProperty Sum
-            $VMHost | Select-Object Name, @{N = 'pCPU'; E = { $_.NumCpu } },
-            @{N = 'vCPU'; E = { $vCPU } },
-            @{N = 'Ratio'; E = { [math]::Round($vCPU / $_.NumCpu, 1) } },
-            @{N = 'Cluster'; E = { $Cluster } }
+        foreach ($Cluster in $Cluster) {
+            foreach ($VMHost in Get-Cluster -Name $Cluster | Get-VMHost) {
+                $vCPU = Get-VM -Location $VMHost | Measure-Object -Property NumCpu -Sum | Select-Object -ExpandProperty Sum
+                $VMHost | Select-Object Name, @{N = 'pCPU'; E = { $_.NumCpu } },
+                @{N = 'vCPU'; E = { $vCPU } },
+                @{N = 'Ratio'; E = { [math]::Round($vCPU / $_.NumCpu, 1) } },
+                @{N = 'Cluster'; E = { $Cluster } }
+            }
         }
     }
 
