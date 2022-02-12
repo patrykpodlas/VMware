@@ -3,7 +3,10 @@ function Get-VMWareCluster {
     .SYNOPSIS
         Simple function to quickly retrieve the cluster information.
     .DESCRIPTION
-        Simple function to quickly retrieve the cluster information. The information includes the ratio of vCPU to actual physical CPU's to esablish if resources are over commited.
+        Simple function to quickly retrieve the cluster information. The information includes the ratio of vCPU allocated to virtual machines, to actual physical CPU's for each host to esablish if resources are over commited.
+    .EXAMPLE
+        PS C:\> Get-VMwareCluster
+        Retrieves the information for all the clusters.
     .EXAMPLE
         PS C:\> Get-VMwareCluster -Clusters <name>
         Retrieves the specified cluster information.
