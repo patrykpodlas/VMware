@@ -1,5 +1,5 @@
 function Get-QvSphereCDP {
-<#
+    <#
     .SYNOPSIS
         Simple function to quickly retrieve the CDP information for any cluster or host.
     .DESCRIPTION
@@ -29,69 +29,67 @@ function Get-QvSphereCDP {
         Date            Author      V       Notes
         17/02/2022      PP          1.0     First release
     #>
-    
-#Requires -Modules VMware.VimAutomation.Core
-#Requires -Version 5.1
-[CmdletBinding(DefaultParameterSetName = "Clusters")]
-param (
-    [Parameter(ParameterSetName = "Clusters")]
-    [string[]]$Clusters = (Get-Cluster),
-    [Parameter(ParameterSetName = "ESXiHost")]
-    [string]$ESXiHost
-)
+    #Requires -Modules VMware.VimAutomation.Core
+    #Requires -Version 5.1
+    [CmdletBinding(DefaultParameterSetName = "Clusters")]
+    param (
+        [Parameter(ParameterSetName = "Clusters")]
+        [string[]]$Clusters = (Get-Cluster),
+        [Parameter(ParameterSetName = "ESXiHost")]
+        [string]$ESXiHost
+    )
 
-begin {
+    begin {
 
-}
+    }
 
-process {
-    if ($Clusters) {
-        foreach ($Cluster in $Clusters) {
-            $returnObj = @()
-            foreach ($VMHost in Get-Cluster -Name $Cluster | Get-VMHost) {
-                $NetSystem = Get-View $VMHost.ExtensionData.ConfigManager.NetworkSystem
-                foreach ($Pnic in $VMHost.ExtensionData.Config.Network.Pnic) {
-                    $PnicInfo = $NetSystem.QueryNetworkHint($Pnic.Device)
-                    $Speed = $VMHost | Get-VMHostNetworkAdapter -Name $Pnic.Device | Select-Object BitRatePerSec
+    process {
+        if ($Clusters) {
+            foreach ($Cluster in $Clusters) {
+                $returnObj = @()
+                foreach ($VMHost in Get-Cluster -Name $Cluster | Get-VMHost) {
+                    $NetSystem = Get-View $VMHost.ExtensionData.ConfigManager.NetworkSystem
+                    foreach ($Pnic in $VMHost.ExtensionData.Config.Network.Pnic) {
+                        $PnicInfo = $NetSystem.QueryNetworkHint($Pnic.Device)
+                        $Speed = $VMHost | Get-VMHostNetworkAdapter -Name $Pnic.Device | Select-Object BitRatePerSec
 
-                    $Obj = [PSCustomObject] @{
-                        'Host'       = $VMHost.Name
-                        'VMNIC'      = $Pnic.Device
-                        'Switch'     = $PnicInfo.ConnectedSwitchPort.DevId
-                        'SwitchPort' = $PnicInfo.ConnectedSwitchPort.PortId
-                        'MAC'        = $Pnic.Mac
-                        'Driver'     = $Pnic.Driver
-                        'Speed(GB)'  = $($Speed.BitRatePerSec) / 1000
+                        $Obj = [PSCustomObject] @{
+                            'Host'       = $VMHost.Name
+                            'VMNIC'      = $Pnic.Device
+                            'Switch'     = $PnicInfo.ConnectedSwitchPort.DevId
+                            'SwitchPort' = $PnicInfo.ConnectedSwitchPort.PortId
+                            'MAC'        = $Pnic.Mac
+                            'Driver'     = $Pnic.Driver
+                            'Speed(GB)'  = $($Speed.BitRatePerSec) / 1000
+                        }
+                        $returnObj += $Obj
                     }
-                    $returnObj += $Obj
                 }
             }
         }
-    }
-    if ($ESXiHost) {
-        $VMHost = Get-VMHost -Name $($ESXiHost + "*")
-        $returnObj = @()
-        $NetSystem = Get-View $VMHost.ExtensionData.ConfigManager.NetworkSystem
-        foreach ($Pnic in $VMHost.ExtensionData.Config.Network.Pnic) {
-            $PnicInfo = $NetSystem.QueryNetworkHint($Pnic.Device)
-            $Speed = $VMHost | Get-VMHostNetworkAdapter -Name $Pnic.Device | Select-Object BitRatePerSec
+        if ($ESXiHost) {
+            $VMHost = Get-VMHost -Name $($ESXiHost + "*")
+            $returnObj = @()
+            $NetSystem = Get-View $VMHost.ExtensionData.ConfigManager.NetworkSystem
+            foreach ($Pnic in $VMHost.ExtensionData.Config.Network.Pnic) {
+                $PnicInfo = $NetSystem.QueryNetworkHint($Pnic.Device)
+                $Speed = $VMHost | Get-VMHostNetworkAdapter -Name $Pnic.Device | Select-Object BitRatePerSec
 
-            $Obj = [PSCustomObject] @{
-                'Host'       = $VMHost.Name
-                'VMNIC'      = $Pnic.Device
-                'Switch'     = $PnicInfo.ConnectedSwitchPort.DevId
-                'SwitchPort' = $PnicInfo.ConnectedSwitchPort.PortId
-                'MAC'        = $Pnic.Mac
-                'Driver'     = $Pnic.Driver
-                'Speed(GB)'  = $($Speed.BitRatePerSec) / 1000
+                $Obj = [PSCustomObject] @{
+                    'Host'       = $VMHost.Name
+                    'VMNIC'      = $Pnic.Device
+                    'Switch'     = $PnicInfo.ConnectedSwitchPort.DevId
+                    'SwitchPort' = $PnicInfo.ConnectedSwitchPort.PortId
+                    'MAC'        = $Pnic.Mac
+                    'Driver'     = $Pnic.Driver
+                    'Speed(GB)'  = $($Speed.BitRatePerSec) / 1000
+                }
+                $returnObj += $Obj
             }
-            $returnObj += $Obj
-        }
-    }   $returnObj
-}
+        }   $returnObj
+    }
 
-end {
+    end {
 
-}
-
+    }
 }
