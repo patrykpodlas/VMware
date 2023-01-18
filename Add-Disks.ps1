@@ -1,16 +1,13 @@
 function Add-Disks {
     <#
 .SYNOPSIS
-    Adds virtual disks to vSphere VM and configures them with appropriate controllers and keys.
+    Adds virtual disks to vSphere VM and configures them with appropriate controllers and unit numbers.
 .DESCRIPTION
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and keys.
-    The script looks for the specified VM, and sets up configuration for each added disk, distributing them amongst all added SCSI controllers, each disk is added one by one and then configured with the first available controller and key.
+    The script looks for the specified VM, and sets up configuration for each added disk, distributing them amongst all added SCSI controllers, each disk is added one by one and then configured with the first available controller and unit number.
     Two disks per controller in the right order.
 .PARAMETER VMName
     Name of the virtual machine to configure.
-.EXAMPLE
-    PS C:\> <example usage>
-    Explanation of what the example does
 .NOTES
     Author: Patryk Podlas
     Created: 13/01/2023
