@@ -35,7 +35,6 @@ function Add-Disks {
         $VM = Get-VM -Name $VMName
         Write-Output "---Shutting down the VM: $VMName"
         $VM | Shutdown-VMGuest -Confirm:$false
-        Write-Output "VM: $VM.Name is already powered off"
 
         while ((Get-VM -Name $VMName).PowerState -EQ "PoweredOn") {
             Write-Output "---Waiting 5 seconds for $VMName to stop"
