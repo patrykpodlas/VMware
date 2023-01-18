@@ -8,8 +8,6 @@ function Add-Disks {
     Two disks per controller in the right order.
 .PARAMETER VMName
     Name of the virtual machine to configure.
-.PARAMETER vSphereServer
-    Name of the vSphere server to connect to.
 .EXAMPLE
     PS C:\> <example usage>
     Explanation of what the example does
@@ -29,20 +27,24 @@ function Add-Disks {
     )
 
     begin {
-
         # Shutdown VM
         $VM = Get-VM -Name $VMName
-        Write-Output "---Shutting down the VM: $VMName"
-        $VM | Shutdown-VMGuest -Confirm:$false
-
-        while ((Get-VM -Name $VMName).PowerState -EQ "PoweredOn") {
-            Write-Output "---Waiting 5 seconds for $VMName to stop"
-            Start-Sleep 5
+        if ($VM.PowerState -eq "PoweredOn") {
+            Write-Output "---Shutting down the Virtual Machine: $VMName"
+            $VM | Shutdown-VMGuest -Confirm:$false
+            while ((Get-VM -Name $VMName).PowerState -eq "PoweredOn") {
+                Write-Output "---Waiting 5 seconds for $VMName to stop"
+                Start-Sleep 5
+            }
+        } elseif ($VM.PowerState -eq "PoweredOff") {
+            Write-Output "Virtual Machine: $VM.Name is already powered off"
         }
-        Write-Output "Adding disks to: $VM.Name"
     }
 
     process {
+
+        Write-Output "Adding disks to: $VM.Name"
+
         try {
             $VM | New-HardDisk -CapacityGB 1
             Start-Sleep 5
