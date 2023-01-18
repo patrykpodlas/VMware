@@ -6,7 +6,6 @@ function Add-Disks {
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and keys.
     The script looks for the specified VM, and sets up configuration for each added disk, distributing them amongst all added SCSI controllers, each disk is added one by one and then configured with the first available controller and key.
     Two disks per controller in the right order.
-    All the environmental variables are retrieved from Azure Key Vault, the variables are filled out as part of the Azure DevOps Pipeline.
 .PARAMETER VMName
     Name of the virtual machine to configure.
 .PARAMETER vSphereServer
