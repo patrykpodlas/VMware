@@ -26,25 +26,10 @@ function Add-Disks {
 
     [CmdletBinding()]
     param (
-        [string]$VMName = $env:env_vmname,
-        [string]$vSphereServer = $env:env_vsphere_server
+        [string]$VMName
     )
 
     begin {
-        #Load PowerCLI
-        Write-Output "---Checking PSModulePath for debugging reasons and importing VMware PowerCLI module"
-        Write-Output $env:PSModulePath.Split(";")
-        Import-Module -Name "VMware.PowerCLI"
-        Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP:$false -DisplayDeprecationWarnings:$false -InvalidCertificateAction Ignore -Confirm:$false
-        # Create credential Object
-        Write-Output "---Variables visible right now:"
-        Get-ChildItem env: | Format-Table
-        Write-Output "---Setting up the credentials to login to vSphere using user: $env:env_vsphere_scripts_username"
-        [SecureString]$secureString = $env:env_vsphere_scripts_password | ConvertTo-SecureString -AsPlainText -Force
-        [PSCredential]$credentialObject = New-Object System.Management.Automation.PSCredential -ArgumentList $env:env_vsphere_scripts_username, $secureString
-
-        # Connect to vCenter
-        Connect-VIServer -Server $vSphereServer -credential $credentialObject
 
         # Shutdown VM
         $VM = Get-VM -Name $VMName
@@ -159,5 +144,3 @@ function Add-Disks {
         $VM | Start-VM -Confirm:$false
     }
 }
-# Execute the function
-Add-Disks
