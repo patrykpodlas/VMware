@@ -56,10 +56,14 @@ function Add-Disks {
             $Config.deviceChange[0].device = $HardDisk.ExtensionData
             $Config.deviceChange[0].device.ControllerKey = "1001"
             $Config.deviceChange[0].device.UnitNumber = "0"
-            $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+            $VM.ExtensionData.ReconfigVM_Task($Config)
             Start-Sleep 5
+            if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                Exit
+            }
         } catch {
-            <#Do this if a terminating exception happens#>
+
         }
         try {
             $VM | New-HardDisk -CapacityGB 2
@@ -71,8 +75,12 @@ function Add-Disks {
             $Config.deviceChange[0].device = $HardDisk.ExtensionData
             $Config.deviceChange[0].device.ControllerKey = "1001"
             $Config.deviceChange[0].device.UnitNumber = "1"
-            $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+            $VM.ExtensionData.ReconfigVM_Task($Config)
             Start-Sleep 5
+            if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                Exit
+            }
         } catch {
             <#Do this if a terminating exception happens#>
         }
@@ -88,6 +96,10 @@ function Add-Disks {
             $Config.deviceChange[0].device.UnitNumber = "0"
             $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
             Start-Sleep 5
+            if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                Exit
+            }
         } catch {
             <#Do this if a terminating exception happens#>
         }
@@ -103,6 +115,10 @@ function Add-Disks {
             $Config.deviceChange[0].device.UnitNumber = "1"
             $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
             Start-Sleep 5
+            if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                Exit
+            }
         } catch {
             <#Do this if a terminating exception happens#>
         }
@@ -118,6 +134,10 @@ function Add-Disks {
             $Config.deviceChange[0].device.UnitNumber = "0"
             $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
             Start-Sleep 5
+            if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                Exit
+            }
         } catch {
             <#Do this if a terminating exception happens#>
         }
@@ -133,6 +153,10 @@ function Add-Disks {
             $Config.deviceChange[0].device.UnitNumber = "1"
             $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
             Start-Sleep 5
+            if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                Exit
+            }
         } catch {
             <#Do this if a terminating exception happens#>
         }
@@ -143,5 +167,9 @@ function Add-Disks {
         $VM | Get-HardDisk | Select-Object Parent, Name, DiskType, DeviceName, CapacityGB, @{n = "ExtensionData"; e = { ($_.ExtensionData.ControllerKey) ; ($_.ExtensionData.UnitNumber) } } | Format-Table -AutoSize
         Write-Output "---Starting the VM"
         $VM | Start-VM -Confirm:$false
+        while ((Get-VM -Name $VMName).PowerState -eq "PoweredOff") {
+            Write-Output "---Waiting 5 seconds for $VMName to start."
+            Start-Sleep 5
+        }
     }
 }
