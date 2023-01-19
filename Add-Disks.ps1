@@ -20,27 +20,31 @@ function Add-Disks {
 
     [CmdletBinding()]
     param (
-        [string]$VMName
+        [string]$VMName,
+        [switch]$Confirm
     )
 
     begin {
         # Shutdown VM
-        $VM = Get-VM -Name $VMName
-        if ($VM.PowerState -eq "PoweredOn") {
+        $VM = Get-VM -Name $VMName -ErrorAction Stop
+        if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
             Write-Output "---Shutting down the Virtual Machine: $VMName"
             $VM | Shutdown-VMGuest -Confirm:$false
             while ((Get-VM -Name $VMName).PowerState -eq "PoweredOn") {
                 Write-Output "---Waiting 5 seconds for $VMName to stop"
                 Start-Sleep 5
             }
+        } elseif ($VM.PowerState -eq "PoweredOn" -and !$Confirm) {
+            Write-Output "Virtual Machine: $VMName must be powered off before continuing! Stopping the script!"
+            Exit
         } elseif ($VM.PowerState -eq "PoweredOff") {
-            Write-Output "Virtual Machine: $VM.Name is already powered off"
+            Write-Output "Virtual Machine: $VMName is already powered off"
         }
     }
 
     process {
 
-        Write-Output "Adding disks to: $VM.Name"
+        Write-Output "Adding disks to: $VMName"
 
         try {
             $VM | New-HardDisk -CapacityGB 1
