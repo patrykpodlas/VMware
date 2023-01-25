@@ -5,7 +5,7 @@ function Add-Disks {
 .DESCRIPTION
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and keys.
     The script looks for the specified VM, and sets up configuration for each added disk, distributing them amongst all added SCSI controllers, each disk is added one by one and then configured with the first available controller and unit number.
-    Two disks per controller in the right order.
+    Supports a maximum of 15 disks added.
 .PARAMETER VMName
     Name of the virtual machine to configure.
 .NOTES
@@ -17,23 +17,49 @@ function Add-Disks {
     13/01/2023      PP          1.0     First release
     18/01/2023      PP          1.1     Update
     20/01/2023      PP          1.2     Update - Added more error handling, must add disk 7/8 (they don't match up in Windows if added to controllers 1:2 and 2:2)
+    25/01/2023      PP          1.3     Update - Added support for up to 15 disks.
 #>
 
     [CmdletBinding()]
     param (
+        [Parameter(Mandatory = $true, Position = 1)]
         [string]$VMName,
+        [Parameter(Mandatory = $false, Position = 2)]
         [switch]$Confirm,
-        [int64]$DiskOneSize = 1,
-        [int64]$DiskTwoSize = 2,
-        [int64]$DiskThreeSize = 3,
-        [int64]$DiskFourSize = 4,
-        [int64]$DiskFiveSize = 5,
-        [int64]$DiskSixSize = 6,
-        [int64]$DiskSevenSize = 7,
-        [int64]$DiskEightSize = 8
+        [Parameter(Mandatory = $false, Position = 3)]
+        [int64]$DiskOneSize,
+        [Parameter(Mandatory = $false, Position = 4)]
+        [int64]$DiskTwoSize,
+        [Parameter(Mandatory = $false, Position = 5)]
+        [int64]$DiskThreeSize,
+        [Parameter(Mandatory = $false, Position = 6)]
+        [int64]$DiskFourSize,
+        [Parameter(Mandatory = $false, Position = 7)]
+        [int64]$DiskFiveSize,
+        [Parameter(Mandatory = $false, Position = 8)]
+        [int64]$DiskSixSize,
+        [Parameter(Mandatory = $false, Position = 9)]
+        [int64]$DiskSevenSize,
+        [Parameter(Mandatory = $false, Position = 10)]
+        [int64]$DiskEightSize,
+        [Parameter(Mandatory = $false, Position = 11)]
+        [int64]$DiskNineSize,
+        [Parameter(Mandatory = $false, Position = 12)]
+        [int64]$DiskTenSize,
+        [Parameter(Mandatory = $false, Position = 13)]
+        [int64]$DiskElevenSize,
+        [Parameter(Mandatory = $false, Position = 14)]
+        [int64]$DiskTwelveSize,
+        [Parameter(Mandatory = $false, Position = 15)]
+        [int64]$DiskThirteenSize,
+        [Parameter(Mandatory = $false, Position = 16)]
+        [int64]$DiskFourteenSize,
+        [Parameter(Mandatory = $false, Position = 17)]
+        [int64]$DiskFifteenSize
     )
 
     begin {
+        Write-Output "Adding $($PSBoundParameters.Count) disks to: $VMName"
         # Shutdown VM
         $VM = Get-VM -Name $VMName -ErrorAction Stop
         if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
@@ -56,182 +82,2245 @@ function Add-Disks {
     }
 
     process {
-
-        Write-Output "Adding disks to: $VMName"
-
-        if ($DiskOneSize) {
-            try {
-                $VM | New-HardDisk -CapacityGB $DiskOneSize
-                Start-Sleep 5
-                $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
-                $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-                $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
-                $Config.deviceChange[0].operation = "edit"
-                $Config.deviceChange[0].device = $HardDisk.ExtensionData
-                $Config.deviceChange[0].device.ControllerKey = "1001"
-                $Config.deviceChange[0].device.UnitNumber = "0"
-                $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
-                Start-Sleep 5
-                if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
-                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+        if ($PSBoundParameters.Count -eq 8) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
                     Exit
                 }
-            } catch {
-                Exit
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
             }
         }
-        if ($DiskTwoSize) {
-            try {
-                $VM | New-HardDisk -CapacityGB $DiskTwoSize
-                Start-Sleep 5
-                $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
-                $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-                $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
-                $Config.deviceChange[0].operation = "edit"
-                $Config.deviceChange[0].device = $HardDisk.ExtensionData
-                $Config.deviceChange[0].device.ControllerKey = "1001"
-                $Config.deviceChange[0].device.UnitNumber = "1"
-                $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
-                Start-Sleep 5
-                if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
-                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+        # Seven disks
+        if ($PSBoundParameters.Count -eq 9) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
                     Exit
                 }
-            } catch {
-                Exit
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
             }
         }
-        if ($DiskSevenSize) {
-            try {
-                $VM | New-HardDisk -CapacityGB $DiskSevenSize
-                Start-Sleep 5
-                $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
-                $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-                $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
-                $Config.deviceChange[0].operation = "edit"
-                $Config.deviceChange[0].device = $HardDisk.ExtensionData
-                $Config.deviceChange[0].device.ControllerKey = "1001"
-                $Config.deviceChange[0].device.UnitNumber = "2"
-                $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
-                Start-Sleep 5
-                if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
-                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+        # Eight disks
+        if ($PSBoundParameters.Count -eq 10) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
                     Exit
                 }
-            } catch {
-                Exit
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskEightSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskEightSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
             }
         }
-        if ($DiskThreeSize) {
-            try {
-                $VM | New-HardDisk -CapacityGB $DiskThreeSize
-                Start-Sleep 5
-                $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
-                $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-                $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
-                $Config.deviceChange[0].operation = "edit"
-                $Config.deviceChange[0].device = $HardDisk.ExtensionData
-                $Config.deviceChange[0].device.ControllerKey = "1002"
-                $Config.deviceChange[0].device.UnitNumber = "0"
-                $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
-                Start-Sleep 5
-                if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
-                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+        # Nine disks
+        if ($PSBoundParameters.Count -eq 11) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
                     Exit
                 }
-            } catch {
-                Exit
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskEightSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskEightSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskNineSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskNineSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
             }
         }
-        if ($DiskFourSize) {
-            try {
-                $VM | New-HardDisk -CapacityGB $DiskFourSize
-                Start-Sleep 5
-                $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
-                $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-                $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
-                $Config.deviceChange[0].operation = "edit"
-                $Config.deviceChange[0].device = $HardDisk.ExtensionData
-                $Config.deviceChange[0].device.ControllerKey = "1002"
-                $Config.deviceChange[0].device.UnitNumber = "1"
-                $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
-                Start-Sleep 5
-                if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
-                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+        # Ten disks
+        if ($PSBoundParameters.Count -eq 12) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
                     Exit
                 }
-            } catch {
-                Exit
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskEightSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskEightSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskNineSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskNineSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
             }
         }
-        if ($DiskEightSize) {
-            try {
-                $VM | New-HardDisk -CapacityGB $DiskEightSize
-                Start-Sleep 5
-                $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
-                $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-                $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
-                $Config.deviceChange[0].operation = "edit"
-                $Config.deviceChange[0].device = $HardDisk.ExtensionData
-                $Config.deviceChange[0].device.ControllerKey = "1002"
-                $Config.deviceChange[0].device.UnitNumber = "2"
-                $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
-                Start-Sleep 5
-                if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
-                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+        # Eleven disks
+        if ($PSBoundParameters.Count -eq 13) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
                     Exit
                 }
-            } catch {
-                Exit
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskEightSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskEightSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskNineSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskNineSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskElevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
             }
         }
-        if ($DiskFiveSize) {
-            try {
-                $VM | New-HardDisk -CapacityGB $DiskFiveSize
-                Start-Sleep 5
-                $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
-                $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-                $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
-                $Config.deviceChange[0].operation = "edit"
-                $Config.deviceChange[0].device = $HardDisk.ExtensionData
-                $Config.deviceChange[0].device.ControllerKey = "1003"
-                $Config.deviceChange[0].device.UnitNumber = "0"
-                $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
-                Start-Sleep 5
-                if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
-                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+        # Twelve disks
+        if ($PSBoundParameters.Count -eq 14) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
                     Exit
                 }
-            } catch {
-                Exit
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskEightSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskEightSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskNineSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskNineSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskElevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTwelveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwelveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
             }
         }
-        if ($DiskSixSize) {
-            try {
-                $VM | New-HardDisk -CapacityGB $DiskSixSize
-                Start-Sleep 5
-                $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
-                $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-                $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
-                $Config.deviceChange[0].operation = "edit"
-                $Config.deviceChange[0].device = $HardDisk.ExtensionData
-                $Config.deviceChange[0].device.ControllerKey = "1003"
-                $Config.deviceChange[0].device.UnitNumber = "1"
-                $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
-                Start-Sleep 5
-                if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
-                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+        # Thirteen disks
+        if ($PSBoundParameters.Count -eq 15) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
                     Exit
                 }
-            } catch {
-                Exit
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskEightSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskEightSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskNineSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskNineSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskElevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTwelveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwelveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThirteenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThirteenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+        }
+        # Fourteen disks
+        if ($PSBoundParameters.Count -eq 16) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskEightSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskEightSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskNineSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskNineSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskElevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTwelveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwelveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThirteenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThirteenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourteenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourteenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+        }
+        # Fifteen disks
+        if ($PSBoundParameters.Count -eq 17) {
+            if ($DiskOneSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskOneSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTwoSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThreeSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFiveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1001"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSixSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSixSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskSevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskEightSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskEightSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskNineSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskNineSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1002"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskElevenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskTwelveSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskTwelveSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskThirteenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskThirteenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFourteenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFourteenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "3"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
+            }
+            if ($DiskFifteenSize) {
+                try {
+                    $VM | New-HardDisk -CapacityGB $DiskFifteenSize
+                    Start-Sleep 5
+                    $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
+                    $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+                    $Config.deviceChange = New-Object VMware.Vim.VirtualDeviceConfigSpec
+                    $Config.deviceChange[0].operation = "edit"
+                    $Config.deviceChange[0].device = $HardDisk.ExtensionData
+                    $Config.deviceChange[0].device.ControllerKey = "1003"
+                    $Config.deviceChange[0].device.UnitNumber = "4"
+                    $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
+                    Start-Sleep 5
+                    if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
+                        Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
+                        Exit
+                    }
+                } catch {
+                    Exit
+                }
             }
         }
     }
 
     end {
         Write-Output "---Added the following disks:"
-        $VM | Get-HardDisk | Select-Object Parent, Name, DiskType, DeviceName, CapacityGB, @{n = "ExtensionData"; e = { ($_.ExtensionData.ControllerKey) ; ($_.ExtensionData.UnitNumber) } } | Format-Table -AutoSize
+        $VM | Get-HardDisk | Select-Object Parent, Name, DiskType, DeviceName, CapacityGB, @{n = "ExtensionData"; e = { ($_.ExtensionData.ControllerKey) ; ($_.ExtensionData.UnitNumber) } } -Skip 1 | Format-Table -AutoSize
         Write-Output "---Starting the VM"
         $VM | Start-VM -Confirm:$false
         while ((Get-VM -Name $VMName).PowerState -eq "PoweredOff") {
