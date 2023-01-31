@@ -8,8 +8,12 @@ function Add-Disks {
     Supports a maximum of 15 disks added.
 .PARAMETER VMName
     Name of the virtual machine to configure.
+.PARAMETER Confirm
+    Switch to disable confirmation prompt to shutdown the VM. If -Confirm is present, the VM will be automatically shutdown, this is required to re-configure the disk.
 .EXAMPLE
     Add-Disks -VMName <Name> -Confirm -DiskOneSize 1 -DiskTwoSize 2 -DiskThreeSize 3 -DiskFourSize 4 -DiskFiveSize 5 -DiskSixSize 6
+
+    Adds 6 virtual disks to the specified VM, and confirms the VM to be shutdown so it doesn't ask you, useful for automatic procedure.
 .NOTES
     Author: Patryk Podlas
     Created: 13/01/2023
