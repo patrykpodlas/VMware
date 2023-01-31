@@ -8,6 +8,8 @@ function Add-Disks {
     Supports a maximum of 15 disks added.
 .PARAMETER VMName
     Name of the virtual machine to configure.
+.EXAMPLE
+    Add-Disks -VMName <Name> -Confirm -DiskOneSize 1 -DiskTwoSize 2 -DiskThreeSize 3 -DiskFourSize 4 -DiskFiveSize 5 -DiskSixSize 6
 .NOTES
     Author: Patryk Podlas
     Created: 13/01/2023
