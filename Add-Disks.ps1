@@ -16,8 +16,9 @@ function Add-Disks {
     Date            Author      V       Notes
     13/01/2023      PP          1.0     First release
     18/01/2023      PP          1.1     Update
-    20/01/2023      PP          1.2     Update - Added more error handling, must add disk 7/8 (they don't match up in Windows if added to controllers 1:2 and 2:2)
+    20/01/2023      PP          1.2     Update - Added more error handling, must add disk 7/8 (they don't match up in Windows if added to controllers 1:2 and 2:2).
     25/01/2023      PP          1.3     Update - Added support for up to 15 disks.
+    30/01/2023      PP          1.4     Update - Changed the way number of disks are detected, fully working depending on amount of parameters specified.
 #>
 
     [CmdletBinding()]
@@ -59,7 +60,11 @@ function Add-Disks {
     )
 
     begin {
-        Write-Output "Adding $($PSBoundParameters.Count) disks to: $VMName"
+        $DiskCount = $PSBoundParameters.Count - 1
+        if ($Confirm) {
+            $DiskCount -= 1
+        }
+        Write-Output "Adding $($DiskCount) disks to: $VMName"
         # Shutdown VM
         $VM = Get-VM -Name $VMName -ErrorAction Stop
         if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
@@ -82,7 +87,7 @@ function Add-Disks {
     }
 
     process {
-        if ($PSBoundParameters.Count -eq 8) {
+        if ($DiskCount -eq 6) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -211,7 +216,7 @@ function Add-Disks {
             }
         }
         # Seven disks
-        if ($PSBoundParameters.Count -eq 9) {
+        if ($DiskCount -eq 7) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -361,7 +366,7 @@ function Add-Disks {
             }
         }
         # Eight disks
-        if ($PSBoundParameters.Count -eq 10) {
+        if ($DiskCount -eq 8) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -532,7 +537,7 @@ function Add-Disks {
             }
         }
         # Nine disks
-        if ($PSBoundParameters.Count -eq 11) {
+        if ($DiskCount -eq 9) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -724,7 +729,7 @@ function Add-Disks {
             }
         }
         # Ten disks
-        if ($PSBoundParameters.Count -eq 12) {
+        if ($DiskCount -eq 10) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -937,7 +942,7 @@ function Add-Disks {
             }
         }
         # Eleven disks
-        if ($PSBoundParameters.Count -eq 13) {
+        if ($DiskCount -eq 11) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -1171,7 +1176,7 @@ function Add-Disks {
             }
         }
         # Twelve disks
-        if ($PSBoundParameters.Count -eq 14) {
+        if ($DiskCount -eq 12) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -1426,7 +1431,7 @@ function Add-Disks {
             }
         }
         # Thirteen disks
-        if ($PSBoundParameters.Count -eq 15) {
+        if ($DiskCount -eq 13) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -1702,7 +1707,7 @@ function Add-Disks {
             }
         }
         # Fourteen disks
-        if ($PSBoundParameters.Count -eq 16) {
+        if ($DiskCount -eq 14) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
@@ -1999,7 +2004,7 @@ function Add-Disks {
             }
         }
         # Fifteen disks
-        if ($PSBoundParameters.Count -eq 17) {
+        if ($DiskCount -eq 15) {
             if ($DiskOneSize) {
                 try {
                     $VM | New-HardDisk -CapacityGB $DiskOneSize
