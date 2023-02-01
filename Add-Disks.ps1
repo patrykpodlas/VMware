@@ -67,7 +67,9 @@ function Add-Disks {
     )
 
     begin {
+        # This line is necessary because one parameter is always present, the -VMName parameter.
         $DiskCount = $PSBoundParameters.Count - 1
+        # This line is necessary because having the -Confirm parameter needs to be accounted for in the disk count, this means if both - the -VMName and -Confirm parameters are present and no Disk<int64>Size parameters are present, the DiskCount is always 0.
         if ($Confirm) {
             $DiskCount -= 1
         }
