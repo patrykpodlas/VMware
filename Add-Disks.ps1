@@ -3166,8 +3166,6 @@ function Add-Disks {
             Write-Output "---Waiting 5 seconds for $VMName to start."
             Start-Sleep 5
         }
-        #Start-Sleep 30
-        #Invoke-Command -ComputerName (Resolve-DnsName -Name $VMname).Name -ScriptBlock { Get-Disk | Sort-Object Number }
     }
 }
 
