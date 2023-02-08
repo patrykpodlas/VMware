@@ -1,4 +1,6 @@
-# Only works with secrets retrieved from Azure Key Vault through Packer
+# Only works with secrets retrieved from Azure Key Vault through Packer's provisioners. You can replace the variables with plain text though and it will work.
+# Can be useful when trying to automate logging into the vSphere environment as part of a script.
+
 # Load PowerCLI
 Write-Output "---Checking PSModulePath for debugging reasons and importing VMware PowerCLI module."
 Write-Output $env:PSModulePath.Split(";")
