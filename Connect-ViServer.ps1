@@ -1,5 +1,6 @@
-# Only works with secrets retrieved from Azure Key Vault through Packer's provisioners. You can replace the variables with plain text though and it will work.
+# Only works with secrets retrieved from Azure Key Vault through Azure DevOps, you can replace the variables with plain text though and it will work.
 # Can be useful when trying to automate logging into the vSphere environment as part of a script.
+# The $env: are environmental variables set using Azure DevOps pipeline in YAML file, the pipeline first retrievs the secrets from Azure Key Vault, and then sets them inside environmental variables, they can then be re-used by anything run on the host machine.
 
 # Load PowerCLI
 Write-Output "---Checking PSModulePath for debugging reasons and importing VMware PowerCLI module."
