@@ -2,9 +2,6 @@ function Add-Disks {
     <#
 .SYNOPSIS
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and unit numbers.
-    WARNING:
-        Doesn't work with manually added controllers post deployment of a contnet library OVA.
-        You must first build a template with the added controllers, export it to the content library, build a VM and then use this function to guarantee right order in Windows OS.
 .DESCRIPTION
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and keys.
     The script looks for the specified VM, and sets up configuration for each added disk, distributing them amongst all added SCSI controllers, each disk is added one by one and then configured with the first available controller and unit number.
@@ -36,6 +33,7 @@ function Add-Disks {
     30/01/2023      PP          1.4     Update - Changed the way number of disks are detected, fully working depending on amount of parameters specified.
     01/02/2023      PP          1.5     Update - Added support for 1, 2, 3, 4, 5 disks.
     07/02/2023      PP          1.6     Update - Added switch for Eager Zeroed Thick disks.
+    08/02/2023      PP          1.7     Update - Fixed issue with manually added controllers, this script now adds the controllers and re-configured them in the appropriate SCSI slot numbers so they show up in order in Windows.
 #>
 
     [CmdletBinding()]
