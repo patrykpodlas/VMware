@@ -118,7 +118,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -146,7 +146,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -171,7 +171,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -199,7 +199,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -224,7 +224,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -249,7 +249,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -277,7 +277,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -302,7 +302,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -327,7 +327,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -352,7 +352,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -380,7 +380,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -405,7 +405,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -430,7 +430,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -455,7 +455,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -508,7 +508,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -533,7 +533,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -558,7 +558,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -583,7 +583,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -661,7 +661,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -686,7 +686,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -711,7 +711,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -736,7 +736,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -839,7 +839,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -864,7 +864,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -889,7 +889,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -914,7 +914,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -1042,7 +1042,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -1067,7 +1067,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -1092,7 +1092,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -1117,7 +1117,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -1270,7 +1270,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -1295,7 +1295,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -1320,7 +1320,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -1345,7 +1345,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -1523,7 +1523,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -1548,7 +1548,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -1573,7 +1573,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -1598,7 +1598,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -1801,7 +1801,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -1826,7 +1826,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -1851,7 +1851,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -1876,7 +1876,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -2104,7 +2104,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -2129,7 +2129,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -2154,7 +2154,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -2179,7 +2179,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -2432,7 +2432,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -2457,7 +2457,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -2482,7 +2482,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -2507,7 +2507,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
@@ -2785,7 +2785,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -2810,7 +2810,7 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -2835,7 +2835,7 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskThreeSize
                     }
@@ -2860,7 +2860,7 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskFourSize
                     }
