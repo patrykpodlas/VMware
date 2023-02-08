@@ -1,4 +1,4 @@
-function Get-QvSphereCDP {
+function Get-vSphereCDP {
     <#
     .SYNOPSIS
         Simple function to quickly retrieve the CDP information for any cluster or host.
@@ -13,13 +13,13 @@ function Get-QvSphereCDP {
         PS C:\> Get-vSphereCDP | Format-Table
         Run the without any parameters to cycle through every cluster the VCSA sees.
     .EXAMPLE
-        PS C:\> Get-vSphereCDP -Clusters WK-92-NP-LAB | Format-Table
+        PS C:\> Get-vSphereCDP -Clusters <ClusterName> | Format-Table
         Specifying the cluster will go through each host within and retrieve the CDP information and formats the output in a table format.
     .EXAMPLE
-        PS C:\> Get-vSphereCDP -ESXiHost ESX-UK-WK-92-01 | Out-GridView
+        PS C:\> Get-vSphereCDP -ESXiHost <ESXiHostName> | Out-GridView
         Specyfing the host will only target the host during CDP retrieval and displays a table with the results. The table can then be sorted as desired.
     .EXAMPLE
-        PS C:\> Get-vSphereCDP -Clusters WK-92-NP-LAB | Export-CSV -Path .\<filename>.csv -NoTypeInformation
+        PS C:\> Get-vSphereCDP -Clusters <ClusterName> | Export-CSV -Path .\<filename>.csv -NoTypeInformation
         Retrieves the CDP information for the entire cluster and exports the results to a CSV file without type information.
     .NOTES
         Author: Patryk Podlas
