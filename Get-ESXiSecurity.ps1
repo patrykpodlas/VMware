@@ -23,7 +23,6 @@ function Get-ESXiSecurity {
         Date            Author      V       Notes
         01/02/2022      PP          1.0     First release
     #>
-    #Requires -Modules VMware.VimAutomation.Core
     #Requires -Version 5.1
     [CmdletBinding()]
     param (

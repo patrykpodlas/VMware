@@ -29,7 +29,6 @@ function Get-vSphereCDP {
         Date            Author      V       Notes
         17/02/2022      PP          1.0     First release
     #>
-    #Requires -Modules VMware.VimAutomation.Core
     #Requires -Version 5.1
     [CmdletBinding(DefaultParameterSetName = "Clusters")]
     param (
