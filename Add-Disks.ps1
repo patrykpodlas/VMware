@@ -109,7 +109,121 @@ function Add-Disks {
         } elseif ($VM.PowerState -eq "PoweredOff") {
             Write-Output "Virtual Machine: $VMName is already powered off."
         }
-        Write-Output "Adding $($DiskCount) disks to: $VMName."
+        Write-Output "---Adding $($DiskCount) disks to: $VMName."
+
+        # Add temporary disks with the controllers
+        Write-Output "---Adding SCSI controllers."
+        $VM | New-HardDisk -CapacityGB 1 | New-ScsiController -Type ParaVirtual
+        Start-Sleep 5
+        $VM | New-HardDisk -CapacityGB 2 | New-ScsiController -Type ParaVirtual
+        Start-Sleep 5
+        $VM | New-HardDisk -CapacityGB 3 | New-ScsiController -Type ParaVirtual
+        Start-Sleep 5
+
+        # Power on the VM and remove the temporary disks - this is necessary because if the VM is powered off, it will remove the SCSI controllers as well.
+        $VM | Start-VM -Confirm:$false | Out-Null
+
+        # Remove the temporary disks
+        Write-Output "---Removing remporary hard disks."
+        $VM | Get-HardDisk | Select-Object -Skip 1 | Remove-HardDisk -Confirm:$false -DeletePermanently | Out-Null
+
+        # Power off the VM once more
+        Write-Output "---Powering off the virtual machine."
+        $VM | Stop-VM -Confirm:$false | Out-Null
+
+        # Configure the correct order of the SCSI controllers.
+        # New slot number to use (number, not a string -- no quotes)
+        Write-Output "---Reconfiguring the controllers with appropriate SCSI slot numbers."
+        $intNewSlotNumber = 1184
+        $scsi0NewSlotNumber = 160
+        $scsi1NewSlotNumber = 192
+        $scsi2NewSlotNumber = 224
+        $scsi3NewSlotNumber = 256
+
+
+        # Network
+        ## create new VMConfigSpec object
+        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+        ## create an array of OptionValues (1 item long)
+        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        ## create a new OptionValue with the desired values
+        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+            key   = "ethernet0.pciSlotNumber"
+            value = $intNewSlotNumber
+        } ## end new-object
+
+        ## get the .NET View object for the VM
+        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
+        ## reconfig the VM with the new spec
+        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+
+        # SCSI 0
+        ## create new VMConfigSpec object
+        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+        ## create an array of OptionValues (1 item long)
+        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        ## create a new OptionValue with the desired values
+        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+            key   = "scsi0.pciSlotNumber"
+            value = $scsi0NewSlotNumber
+        } ## end new-object
+
+        ## get the .NET View object for the VM
+        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
+        ## reconfig the VM with the new spec
+        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        Start-Sleep 5
+
+        # SCSI 1
+        ## create new VMConfigSpec object
+        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+        ## create an array of OptionValues (1 item long)
+        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        ## create a new OptionValue with the desired values
+        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+            key   = "scsi1.pciSlotNumber"
+            value = $scsi1NewSlotNumber
+        } ## end new-object
+
+        ## get the .NET View object for the VM
+        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
+        ## reconfig the VM with the new spec
+        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        Start-Sleep 5
+
+        # SCSI 2
+        ## create new VMConfigSpec object
+        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+        ## create an array of OptionValues (1 item long)
+        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        ## create a new OptionValue with the desired values
+        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+            key   = "scsi2.pciSlotNumber"
+            value = $scsi2NewSlotNumber
+        } ## end new-object
+
+        ## get the .NET View object for the VM
+        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
+        ## reconfig the VM with the new spec
+        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        Start-Sleep 5
+
+        # SCSI 3
+        ## create new VMConfigSpec object
+        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+        ## create an array of OptionValues (1 item long)
+        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        ## create a new OptionValue with the desired values
+        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+            key   = "scsi3.pciSlotNumber"
+            value = $scsi3NewSlotNumber
+        } ## end new-object
+
+        ## get the .NET View object for the VM
+        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
+        ## reconfig the VM with the new spec
+        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        Start-Sleep 5
     }
 
     process {
@@ -118,7 +232,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -137,6 +251,7 @@ function Add-Disks {
                         Exit
                     }
                 } catch {
+                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
                     Exit
                 }
             }
@@ -146,7 +261,7 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize
                     }
@@ -165,13 +280,14 @@ function Add-Disks {
                         Exit
                     }
                 } catch {
+                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
                     Exit
                 }
             }
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -190,6 +306,7 @@ function Add-Disks {
                         Exit
                     }
                 } catch {
+                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
                     Exit
                 }
             }
@@ -199,9 +316,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -218,15 +335,16 @@ function Add-Disks {
                         Exit
                     }
                 } catch {
+                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
                     Exit
                 }
             }
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -243,15 +361,16 @@ function Add-Disks {
                         Exit
                     }
                 } catch {
+                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
                     Exit
                 }
             }
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -268,6 +387,7 @@ function Add-Disks {
                         Exit
                     }
                 } catch {
+                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
                     Exit
                 }
             }
@@ -277,9 +397,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -296,13 +416,14 @@ function Add-Disks {
                         Exit
                     }
                 } catch {
+                    Write-Output "Adding $HardDisk has failed! Check VM's event logs for more details, terminating the script."
                     Exit
                 }
             }
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize
                     }
@@ -327,9 +448,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -352,9 +473,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -380,9 +501,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -405,9 +526,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -430,9 +551,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -455,9 +576,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -480,9 +601,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -508,9 +629,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -533,9 +654,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -558,9 +679,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -583,9 +704,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -608,9 +729,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -633,9 +754,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -661,9 +782,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -686,9 +807,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -711,9 +832,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -736,9 +857,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -786,9 +907,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -811,9 +932,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -839,9 +960,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -864,9 +985,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -889,9 +1010,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -914,9 +1035,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -939,9 +1060,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -964,9 +1085,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -989,9 +1110,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1014,9 +1135,9 @@ function Add-Disks {
             if ($DiskEightSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1042,9 +1163,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1067,9 +1188,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1092,9 +1213,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1117,9 +1238,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1142,9 +1263,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1167,9 +1288,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1192,9 +1313,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1217,9 +1338,9 @@ function Add-Disks {
             if ($DiskEightSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1242,9 +1363,9 @@ function Add-Disks {
             if ($DiskNineSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1270,9 +1391,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1295,9 +1416,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1320,9 +1441,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1345,9 +1466,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1370,9 +1491,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1395,9 +1516,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1420,9 +1541,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1445,9 +1566,9 @@ function Add-Disks {
             if ($DiskEightSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1470,9 +1591,9 @@ function Add-Disks {
             if ($DiskNineSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1495,9 +1616,9 @@ function Add-Disks {
             if ($DiskTenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1523,9 +1644,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1548,9 +1669,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1573,9 +1694,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1598,9 +1719,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1623,9 +1744,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1648,9 +1769,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1673,9 +1794,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1698,9 +1819,9 @@ function Add-Disks {
             if ($DiskEightSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1723,9 +1844,9 @@ function Add-Disks {
             if ($DiskNineSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1748,9 +1869,9 @@ function Add-Disks {
             if ($DiskTenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1773,9 +1894,9 @@ function Add-Disks {
             if ($DiskElevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1801,9 +1922,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1826,9 +1947,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1851,9 +1972,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1876,9 +1997,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1901,9 +2022,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1926,9 +2047,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1951,9 +2072,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -1976,9 +2097,9 @@ function Add-Disks {
             if ($DiskEightSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2001,9 +2122,9 @@ function Add-Disks {
             if ($DiskNineSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2026,9 +2147,9 @@ function Add-Disks {
             if ($DiskTenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2051,9 +2172,9 @@ function Add-Disks {
             if ($DiskElevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2076,9 +2197,9 @@ function Add-Disks {
             if ($DiskTwelveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2104,9 +2225,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2129,9 +2250,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2154,9 +2275,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2179,9 +2300,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2204,9 +2325,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2229,9 +2350,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2254,9 +2375,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2279,9 +2400,9 @@ function Add-Disks {
             if ($DiskEightSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2304,9 +2425,9 @@ function Add-Disks {
             if ($DiskNineSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2329,9 +2450,9 @@ function Add-Disks {
             if ($DiskTenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2354,9 +2475,9 @@ function Add-Disks {
             if ($DiskElevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2379,9 +2500,9 @@ function Add-Disks {
             if ($DiskTwelveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2404,9 +2525,9 @@ function Add-Disks {
             if ($DiskThirteenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize
+                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2432,9 +2553,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2457,9 +2578,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2482,9 +2603,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2507,9 +2628,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2532,9 +2653,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2557,9 +2678,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2582,9 +2703,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2607,9 +2728,9 @@ function Add-Disks {
             if ($DiskEightSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2632,9 +2753,9 @@ function Add-Disks {
             if ($DiskNineSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2657,9 +2778,9 @@ function Add-Disks {
             if ($DiskTenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2682,9 +2803,9 @@ function Add-Disks {
             if ($DiskElevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2707,9 +2828,9 @@ function Add-Disks {
             if ($DiskTwelveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2732,9 +2853,9 @@ function Add-Disks {
             if ($DiskThirteenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize
+                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2757,9 +2878,9 @@ function Add-Disks {
             if ($DiskFourteenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourteenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourteenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourteenSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourteenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2785,9 +2906,9 @@ function Add-Disks {
             if ($DiskOneSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2810,9 +2931,9 @@ function Add-Disks {
             if ($DiskTwoSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2835,9 +2956,9 @@ function Add-Disks {
             if ($DiskThreeSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThreeSize
+                        $VM | New-HardDisk -CapacityGB $DiskThreeSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2860,9 +2981,9 @@ function Add-Disks {
             if ($DiskFourSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop"
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2885,9 +3006,9 @@ function Add-Disks {
             if ($DiskFiveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFiveSize
+                        $VM | New-HardDisk -CapacityGB $DiskFiveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2910,9 +3031,9 @@ function Add-Disks {
             if ($DiskSixSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSixSize
+                        $VM | New-HardDisk -CapacityGB $DiskSixSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2935,9 +3056,9 @@ function Add-Disks {
             if ($DiskSevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskSevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskSevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2960,9 +3081,9 @@ function Add-Disks {
             if ($DiskEightSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskEightSize
+                        $VM | New-HardDisk -CapacityGB $DiskEightSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -2985,9 +3106,9 @@ function Add-Disks {
             if ($DiskNineSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskNineSize
+                        $VM | New-HardDisk -CapacityGB $DiskNineSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -3010,9 +3131,9 @@ function Add-Disks {
             if ($DiskTenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTenSize
+                        $VM | New-HardDisk -CapacityGB $DiskTenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -3035,9 +3156,9 @@ function Add-Disks {
             if ($DiskElevenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskElevenSize
+                        $VM | New-HardDisk -CapacityGB $DiskElevenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -3060,9 +3181,9 @@ function Add-Disks {
             if ($DiskTwelveSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwelveSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -3085,9 +3206,9 @@ function Add-Disks {
             if ($DiskThirteenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize
+                        $VM | New-HardDisk -CapacityGB $DiskThirteenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -3110,9 +3231,9 @@ function Add-Disks {
             if ($DiskFourteenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFourteenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFourteenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFourteenSize
+                        $VM | New-HardDisk -CapacityGB $DiskFourteenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -3135,9 +3256,9 @@ function Add-Disks {
             if ($DiskFifteenSize) {
                 try {
                     if ($EagerZeroedThick) {
-                        $VM | New-HardDisk -CapacityGB $DiskFifteenSize -StorageFormat EagerZeroedThick
+                        $VM | New-HardDisk -CapacityGB $DiskFifteenSize -StorageFormat EagerZeroedThick | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskFifteenSize
+                        $VM | New-HardDisk -CapacityGB $DiskFifteenSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
