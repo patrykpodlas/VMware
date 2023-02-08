@@ -10,7 +10,7 @@ function Get-vSphereCluster {
         PS C:\> Get-vSphereCluster
         Retrieves the information for all the clusters.
     .EXAMPLE
-        PS C:\> Get-vSphereCluster -Clusters <name>
+        PS C:\> Get-vSphereCluster -Clusters <ClusterName>
         Retrieves the specified cluster information.
     .NOTES
         Author: Patryk Podlas
