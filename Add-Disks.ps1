@@ -2,6 +2,9 @@ function Add-Disks {
     <#
 .SYNOPSIS
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and unit numbers.
+    WARNING:
+        Doesn't work with manually added controllers post deployment of a contnet library OVA.
+        You must first build a template with the added controllers, export it to the content library, build a VM and then use this function to guarantee right order in Windows OS.
 .DESCRIPTION
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and keys.
     The script looks for the specified VM, and sets up configuration for each added disk, distributing them amongst all added SCSI controllers, each disk is added one by one and then configured with the first available controller and unit number.
@@ -3168,5 +3171,3 @@ function Add-Disks {
         }
     }
 }
-
-# doesn't work with manually added controllers!
