@@ -7,6 +7,7 @@ function Add-Disks {
     The script looks for the specified VM, and sets up configuration for each added disk, distributing them amongst all added SCSI controllers, each disk is added one by one and then configured with the first available controller and unit number.
     Supports a maximum of 15 disks added.
     By default the disks are added as lazy zeroed thick.
+    The script does not support adding disks if the controller and key are already occupied by previously added disks, script works flawlessly when adding disks in addition to the OS disk.
 .PARAMETER VMName
     Name of the virtual machine to configure.
 .PARAMETER Confirm
@@ -75,28 +76,27 @@ function Add-Disks {
     )
 
     begin {
-        # This line is necessary because one parameter is always present, the -VMName parameter.
+        # This line is necessary because one mandatory parameter is always present, the -VMName parameter.
         $DiskCount = $PSBoundParameters.Count - 1
-        # This line is necessary because having the -Confirm parameter needs to be accounted for in the disk count, this means if both - the -VMName and -Confirm parameters are present and no Disk<int64>Size parameters are present, the DiskCount is always 0.
+        # These two lines are necessary because having the -Confirm parameter needs to be accounted for in the disk count, this means if both - the -VMName and -Confirm parameters are present and no Disk<int64>Size parameters are present, the DiskCount is always 0.
         if ($Confirm) {
             $DiskCount -= 1
         }
         if ($EagerZeroedThick) {
             $DiskCount -= 1
         }
-        Write-Output "Adding $($DiskCount) disks to: $VMName"
-        # Shutdown VM
         $VM = Get-VM -Name $VMName -ErrorAction Stop
+        # Shutdown VM
         if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
-            Write-Output "---Shutting down the Virtual Machine: $VMName"
+            Write-Output "---Shutting down the Virtual Machine: $VMName."
             try {
                 $VM | Shutdown-VMGuest -Confirm:$false -ErrorAction Stop
                 while ((Get-VM -Name $VMName).PowerState -eq "PoweredOn") {
-                    Write-Output "---Waiting 5 seconds for $VMName to stop"
+                    Write-Output "---Waiting 5 seconds for $VMName to stop."
                     Start-Sleep 5
                 }
             } catch {
-                #Add error handling for "Operation "Shutdown VM guest." failed for VM <NMName> for the following reason: Cannot complete operation because VMware Tools is not running in this virtual machine."
+                # Add error handling for "Operation "Shutdown VM guest." failed for VM <NMName> for the following reason: Cannot complete operation because VMware Tools is not running in this virtual machine."
                 Write-Output "---Virtual Machine: $VMname failed to shutdown gracefully, forcing power off."
                 $VM | Stop-VM -Confirm:$false
             }
@@ -104,8 +104,9 @@ function Add-Disks {
             Write-Output "Virtual Machine: $VMName must be powered off before continuing! Stopping the script!"
             Exit
         } elseif ($VM.PowerState -eq "PoweredOff") {
-            Write-Output "Virtual Machine: $VMName is already powered off"
+            Write-Output "Virtual Machine: $VMName is already powered off."
         }
+        Write-Output "Adding $($DiskCount) disks to: $VMName."
     }
 
     process {
@@ -1477,7 +1478,7 @@ function Add-Disks {
                     $Config.deviceChange[0].operation = "edit"
                     $Config.deviceChange[0].device = $HardDisk.ExtensionData
                     $Config.deviceChange[0].device.ControllerKey = "1003"
-                    $Config.deviceChange[0].device.UnitNumber = "1"
+                    $Config.deviceChange[0].device.UnitNumber = "0"
                     $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
                     Start-Sleep 5
                     if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
@@ -1502,7 +1503,7 @@ function Add-Disks {
                     $Config.deviceChange[0].operation = "edit"
                     $Config.deviceChange[0].device = $HardDisk.ExtensionData
                     $Config.deviceChange[0].device.ControllerKey = "1003"
-                    $Config.deviceChange[0].device.UnitNumber = "2"
+                    $Config.deviceChange[0].device.UnitNumber = "1"
                     $VM.ExtensionData.ReconfigVM_Task($Config) | Out-Null
                     Start-Sleep 5
                     if ((Get-Task | Select-Object -Last 1).State -eq "Error") {
@@ -3165,5 +3166,9 @@ function Add-Disks {
             Write-Output "---Waiting 5 seconds for $VMName to start."
             Start-Sleep 5
         }
+        #Start-Sleep 30
+        #Invoke-Command -ComputerName (Resolve-DnsName -Name $VMname).Name -ScriptBlock { Get-Disk | Sort-Object Number }
     }
 }
+
+# doesn't work with manually added controllers!
