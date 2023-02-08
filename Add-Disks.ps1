@@ -111,14 +111,15 @@ function Add-Disks {
 
         # Add temporary disks with the controllers
         Write-Output "---Adding SCSI controllers."
-        $VM | New-HardDisk -CapacityGB 1 | New-ScsiController -Type ParaVirtual | Out-Null
-        Start-Sleep 5
-        $VM | New-HardDisk -CapacityGB 2 | New-ScsiController -Type ParaVirtual | Out-Null
-        Start-Sleep 5
-        $VM | New-HardDisk -CapacityGB 3 | New-ScsiController -Type ParaVirtual | Out-Null
-        Start-Sleep 5
+        $VM | New-HardDisk -CapacityGB 1 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop
+        Start-Sleep 1
+        $VM | New-HardDisk -CapacityGB 2 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop
+        Start-Sleep 1
+        $VM | New-HardDisk -CapacityGB 3 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop
+        Start-Sleep 1
 
         # Power on the VM and remove the temporary disks - this is necessary because if the VM is powered off, it will remove the SCSI controllers as well.
+        Write-Output "---Powering on the virtual machine"
         $VM | Start-VM -Confirm:$false | Out-Null
 
         # Remove the temporary disks
@@ -137,7 +138,7 @@ function Add-Disks {
         $scsi2NewSlotNumber = 224
         $scsi3NewSlotNumber = 256
 
-        # Network
+        # Network Interface Card
         $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
         $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
         $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
