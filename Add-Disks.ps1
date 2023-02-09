@@ -91,7 +91,7 @@ function Add-Disks {
         if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
             Write-Output "---Shutting down the Virtual Machine: $VMName."
             try {
-                $VM | Shutdown-VMGuest -Confirm:$false -ErrorAction Stop
+                $VM | Shutdown-VMGuest -Confirm:$false -ErrorAction Stop | Out-Null
                 while ((Get-VM -Name $VMName).PowerState -eq "PoweredOn") {
                     Write-Output "---Waiting 5 seconds for $VMName to stop."
                     Start-Sleep 5
@@ -107,8 +107,6 @@ function Add-Disks {
         } elseif ($VM.PowerState -eq "PoweredOff") {
             Write-Output "Virtual Machine: $VMName is already powered off."
         }
-
-        Write-Output "---Adding $($DiskCount) disks to: $VMName."
 
         # Add temporary disks with the controllers
         Write-Output "---Adding SCSI controllers."
@@ -126,7 +124,11 @@ function Add-Disks {
 
         # Remove the temporary disks
         Write-Output "---Removing temporary hard disks."
-        $VM | Get-HardDisk | Select-Object -Skip 1 | Remove-HardDisk -Confirm:$false -DeletePermanently ; Start-Sleep -Seconds 1
+        $VM | Get-HardDisk | Select-Object -Skip 1 | Remove-HardDisk -Confirm:$false -DeletePermanently ; Start-Sleep -Seconds 5
+
+        # Allow the virtual machine to power on completely to attempt graceful shutdown.
+        Write-Output "---Allowing $VMName to power on completely to attempt gracefull shutdown."
+        Start-Sleep -Seconds 30
 
         # Shutdown the virtual machine once more
         if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
@@ -213,6 +215,7 @@ function Add-Disks {
     }
 
     process {
+        Write-Output "---Adding $($DiskCount) disks to: $VMName."
         # One disk
         if ($DiskCount -eq 1) {
             if ($DiskOneSize) {
@@ -3271,7 +3274,7 @@ function Add-Disks {
         Write-Output "---Added the following disks:"
         $VM | Get-HardDisk | Select-Object Parent, Name, DiskType, StorageFormat, CapacityGB, @{n = "ExtensionData"; e = { ($_.ExtensionData.ControllerKey) ; ($_.ExtensionData.UnitNumber) } } -Skip 1 | Format-Table -AutoSize
         Write-Output "---Starting the virtual machine."
-        $VM | Start-VM -Confirm:$false
+        $VM | Start-VM -Confirm:$false | Out-Null
         while ((Get-VM -Name $VMName).PowerState -eq "PoweredOff") {
             Write-Output "---Waiting 5 seconds for $VMName to start."
             Start-Sleep 5
