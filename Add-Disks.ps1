@@ -160,57 +160,57 @@ function Add-Disks {
         $scsi3NewSlotNumber = 256
 
         # Network Interface Card
-        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
             key   = "ethernet0.pciSlotNumber"
             value = $intNewSlotNumber
         }
         $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
 
         # SCSI 0
-        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
             key   = "scsi0.pciSlotNumber"
             value = $scsi0NewSlotNumber
         }
         $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
         Start-Sleep 5
 
         # SCSI 1
-        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
             key   = "scsi1.pciSlotNumber"
             value = $scsi1NewSlotNumber
         }
         $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
         Start-Sleep 5
 
         # SCSI 2
-        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
             key   = "scsi2.pciSlotNumber"
             value = $scsi2NewSlotNumber
         }
         $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
         Start-Sleep 5
 
         # SCSI 3
-        $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $spec.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $spec.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
             key   = "scsi3.pciSlotNumber"
             value = $scsi3NewSlotNumber
         }
         $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($spec) | Out-Null
+        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
         Start-Sleep 5
     }
 
