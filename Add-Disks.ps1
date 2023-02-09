@@ -451,7 +451,7 @@ function Add-Disks {
                 @{DiskNumber = "3"; DiskSize = "$DiskThreeSize"; ControllerKey = "1001"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "4"; DiskSize = "$DiskFourSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" },
                 @{DiskNumber = "5"; DiskSize = "$DiskFiveSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" },
-                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" }
+                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "7"; DiskSize = "$DiskSevenSize"; ControllerKey = "1003"; ControllerUnitNumber = "0" }
             ) | ForEach-Object { New-Object object | Add-Member -NotePropertyMembers $_ -PassThru }
 
@@ -492,7 +492,7 @@ function Add-Disks {
                 @{DiskNumber = "3"; DiskSize = "$DiskThreeSize"; ControllerKey = "1001"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "4"; DiskSize = "$DiskFourSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" },
                 @{DiskNumber = "5"; DiskSize = "$DiskFiveSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" },
-                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" }
+                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "7"; DiskSize = "$DiskSevenSize"; ControllerKey = "1003"; ControllerUnitNumber = "0" },
                 @{DiskNumber = "8"; DiskSize = "$DiskEightSize"; ControllerKey = "1003"; ControllerUnitNumber = "1" }
             ) | ForEach-Object { New-Object object | Add-Member -NotePropertyMembers $_ -PassThru }
@@ -577,7 +577,7 @@ function Add-Disks {
                 @{DiskNumber = "3"; DiskSize = "$DiskThreeSize"; ControllerKey = "1001"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "4"; DiskSize = "$DiskFourSize"; ControllerKey = "1001"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "5"; DiskSize = "$DiskFiveSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" },
-                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" }
+                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" },
                 @{DiskNumber = "7"; DiskSize = "$DiskSevenSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "8"; DiskSize = "$DiskEightSize"; ControllerKey = "1002"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "9"; DiskSize = "$DiskNineSize"; ControllerKey = "1003"; ControllerUnitNumber = "0" },
@@ -621,7 +621,7 @@ function Add-Disks {
                 @{DiskNumber = "3"; DiskSize = "$DiskThreeSize"; ControllerKey = "1001"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "4"; DiskSize = "$DiskFourSize"; ControllerKey = "1001"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "5"; DiskSize = "$DiskFiveSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" },
-                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" }
+                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" },
                 @{DiskNumber = "7"; DiskSize = "$DiskSevenSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "8"; DiskSize = "$DiskEightSize"; ControllerKey = "1002"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "9"; DiskSize = "$DiskNineSize"; ControllerKey = "1003"; ControllerUnitNumber = "0" },
@@ -666,7 +666,7 @@ function Add-Disks {
                 @{DiskNumber = "3"; DiskSize = "$DiskThreeSize"; ControllerKey = "1001"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "4"; DiskSize = "$DiskFourSize"; ControllerKey = "1001"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "5"; DiskSize = "$DiskFiveSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" },
-                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" }
+                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" },
                 @{DiskNumber = "7"; DiskSize = "$DiskSevenSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "8"; DiskSize = "$DiskEightSize"; ControllerKey = "1002"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "9"; DiskSize = "$DiskNineSize"; ControllerKey = "1003"; ControllerUnitNumber = "0" },
@@ -712,7 +712,7 @@ function Add-Disks {
                 @{DiskNumber = "3"; DiskSize = "$DiskThreeSize"; ControllerKey = "1001"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "4"; DiskSize = "$DiskFourSize"; ControllerKey = "1001"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "5"; DiskSize = "$DiskFiveSize"; ControllerKey = "1001"; ControllerUnitNumber = "4" },
-                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" }
+                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" },
                 @{DiskNumber = "7"; DiskSize = "$DiskSevenSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" },
                 @{DiskNumber = "8"; DiskSize = "$DiskEightSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "9"; DiskSize = "$DiskNineSize"; ControllerKey = "1002"; ControllerUnitNumber = "3" },
@@ -759,7 +759,7 @@ function Add-Disks {
                 @{DiskNumber = "3"; DiskSize = "$DiskThreeSize"; ControllerKey = "1001"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "4"; DiskSize = "$DiskFourSize"; ControllerKey = "1001"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "5"; DiskSize = "$DiskFiveSize"; ControllerKey = "1001"; ControllerUnitNumber = "4" },
-                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" }
+                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" },
                 @{DiskNumber = "7"; DiskSize = "$DiskSevenSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" },
                 @{DiskNumber = "8"; DiskSize = "$DiskEightSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "9"; DiskSize = "$DiskNineSize"; ControllerKey = "1002"; ControllerUnitNumber = "3" },
@@ -807,7 +807,7 @@ function Add-Disks {
                 @{DiskNumber = "3"; DiskSize = "$DiskThreeSize"; ControllerKey = "1001"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "4"; DiskSize = "$DiskFourSize"; ControllerKey = "1001"; ControllerUnitNumber = "3" },
                 @{DiskNumber = "5"; DiskSize = "$DiskFiveSize"; ControllerKey = "1001"; ControllerUnitNumber = "4" },
-                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" }
+                @{DiskNumber = "6"; DiskSize = "$DiskSixSize"; ControllerKey = "1002"; ControllerUnitNumber = "0" },
                 @{DiskNumber = "7"; DiskSize = "$DiskSevenSize"; ControllerKey = "1002"; ControllerUnitNumber = "1" },
                 @{DiskNumber = "8"; DiskSize = "$DiskEightSize"; ControllerKey = "1002"; ControllerUnitNumber = "2" },
                 @{DiskNumber = "9"; DiskSize = "$DiskNineSize"; ControllerKey = "1002"; ControllerUnitNumber = "3" },
