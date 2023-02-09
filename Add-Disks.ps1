@@ -87,7 +87,7 @@ function Add-Disks {
             $DiskCount -= 1
         }
         $VM = Get-VM -Name $VMName -ErrorAction Stop
-        # Shutdown VM
+        # Shutdown the virtual machine
         if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
             Write-Output "---Shutting down the Virtual Machine: $VMName."
             try {
@@ -107,28 +107,47 @@ function Add-Disks {
         } elseif ($VM.PowerState -eq "PoweredOff") {
             Write-Output "Virtual Machine: $VMName is already powered off."
         }
+
         Write-Output "---Adding $($DiskCount) disks to: $VMName."
 
         # Add temporary disks with the controllers
         Write-Output "---Adding SCSI controllers."
-        $VM | New-HardDisk -CapacityGB 1 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop
-        Start-Sleep 1
-        $VM | New-HardDisk -CapacityGB 2 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop
-        Start-Sleep 1
-        $VM | New-HardDisk -CapacityGB 3 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop
-        Start-Sleep 1
+        $VM | New-HardDisk -CapacityGB 1 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
+        $VM | New-HardDisk -CapacityGB 2 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
+        $VM | New-HardDisk -CapacityGB 3 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
 
         # Power on the VM and remove the temporary disks - this is necessary because if the VM is powered off, it will remove the SCSI controllers as well.
-        Write-Output "---Powering on the virtual machine"
-        $VM | Start-VM -Confirm:$false | Out-Null
+        Write-Output "---Starting the VM"
+        $VM | Start-VM -Confirm:$false
+        while ((Get-VM -Name $VMName).PowerState -eq "PoweredOff") {
+            Write-Output "---Waiting 5 seconds for $VMName to start."
+            Start-Sleep 5
+        }
 
         # Remove the temporary disks
-        Write-Output "---Removing remporary hard disks."
-        $VM | Get-HardDisk | Select-Object -Skip 1 | Remove-HardDisk -Confirm:$false -DeletePermanently | Out-Null
+        Write-Output "---Removing temporary hard disks."
+        $VM | Get-HardDisk | Select-Object -Skip 1 | Remove-HardDisk -Confirm:$false -DeletePermanently ; Start-Sleep -Seconds 1
 
-        # Power off the VM once more
-        Write-Output "---Powering off the virtual machine."
-        $VM | Stop-VM -Confirm:$false | Out-Null
+        # Shutdown the virtual machine once more
+        if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
+            Write-Output "---Shutting down the Virtual Machine: $VMName."
+            try {
+                $VM | Shutdown-VMGuest -Confirm:$false -ErrorAction Stop
+                while ((Get-VM -Name $VMName).PowerState -eq "PoweredOn") {
+                    Write-Output "---Waiting 5 seconds for $VMName to stop."
+                    Start-Sleep 5
+                }
+            } catch {
+                # Add error handling for "Operation "Shutdown VM guest." failed for VM <NMName> for the following reason: Cannot complete operation because VMware Tools is not running in this virtual machine."
+                Write-Output "---Virtual Machine: $VMname failed to shutdown gracefully, forcing power off."
+                $VM | Stop-VM -Confirm:$false
+            }
+        } elseif ($VM.PowerState -eq "PoweredOn" -and !$Confirm) {
+            Write-Output "Virtual Machine: $VMName must be powered off before continuing! Stopping the script!"
+            Exit
+        } elseif ($VM.PowerState -eq "PoweredOff") {
+            Write-Output "Virtual Machine: $VMName is already powered off."
+        }
 
         # Configure the correct order of the SCSI controllers.
         Write-Output "---Reconfiguring the controllers with appropriate SCSI slot numbers."
@@ -201,7 +220,7 @@ function Add-Disks {
                     if ($EagerZeroedThick) {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -230,7 +249,7 @@ function Add-Disks {
                     if ($EagerZeroedThick) {
                         $VM | New-HardDisk -CapacityGB $DiskOneSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskOneSize
+                        $VM | New-HardDisk -CapacityGB $DiskOneSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -256,7 +275,7 @@ function Add-Disks {
                     if ($EagerZeroedThick) {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -392,7 +411,7 @@ function Add-Disks {
                     if ($EagerZeroedThick) {
                         $VM | New-HardDisk -CapacityGB $DiskTwoSize -StorageFormat EagerZeroedThick -ErrorAction "Stop" | Out-Null
                     } else {
-                        $VM | New-HardDisk -CapacityGB $DiskTwoSize
+                        $VM | New-HardDisk -CapacityGB $DiskTwoSize | Out-Null
                     }
                     Start-Sleep 5
                     $HardDisk = $VM | Get-HardDisk | Select-Object -Last 1
@@ -3251,7 +3270,7 @@ function Add-Disks {
     end {
         Write-Output "---Added the following disks:"
         $VM | Get-HardDisk | Select-Object Parent, Name, DiskType, StorageFormat, CapacityGB, @{n = "ExtensionData"; e = { ($_.ExtensionData.ControllerKey) ; ($_.ExtensionData.UnitNumber) } } -Skip 1 | Format-Table -AutoSize
-        Write-Output "---Starting the VM"
+        Write-Output "---Starting the virtual machine."
         $VM | Start-VM -Confirm:$false
         while ((Get-VM -Name $VMName).PowerState -eq "PoweredOff") {
             Write-Output "---Waiting 5 seconds for $VMName to start."
