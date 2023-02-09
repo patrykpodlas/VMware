@@ -110,7 +110,7 @@ function Add-Disks {
         }
 
         # Add temporary disks with the controllers
-        Write-Output "---Adding SCSI controllers."
+        Write-Output "---Adding 3 ParaVirtual SCSI controllers."
         $VM | New-HardDisk -CapacityGB 1 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
         $VM | New-HardDisk -CapacityGB 2 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
         $VM | New-HardDisk -CapacityGB 3 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
