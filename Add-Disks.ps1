@@ -156,72 +156,24 @@ function Add-Disks {
         Write-Output "---Reconfiguring the controllers with appropriate SCSI slot numbers."
 
         $Table = @(
-            @{SCSI = "0"; SlotNumber = "scsi0NewSlotNumber"; Value = "160" },
-            @{SCSI = "1"; SlotNumber = "scsi1NewSlotNumber"; Value = "192" },
-            @{SCSI = "2"; SlotNumber = "scsi2NewSlotNumber"; Value = "224" },
-            @{SCSI = "3"; SlotNumber = "scsi3NewSlotNumber"; Value = "256" }
+            @{SCSI = "0"; Key = "ethernet0.pciSlotNumber"; Value = "1184" },
+            @{SCSI = "0"; Key = "scsi0.pciSlotNumber"; Value = "160" },
+            @{SCSI = "1"; Key = "scsi1.pciSlotNumber"; Value = "192" },
+            @{SCSI = "2"; Key = "scsi2.pciSlotNumber"; Value = "224" },
+            @{SCSI = "3"; Key = "scsi3.pciSlotNumber"; Value = "256" }
         ) | ForEach-Object { New-Object object | Add-Member -NotePropertyMembers $_ -PassThru }
 
-
-        $intNewSlotNumber = 1184
-        $scsi0NewSlotNumber = 160
-        $scsi1NewSlotNumber = 192
-        $scsi2NewSlotNumber = 224
-        $scsi3NewSlotNumber = 256
-
-        # Network Interface Card
-        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
-            key   = "ethernet0.pciSlotNumber"
-            value = $intNewSlotNumber
+        foreach ($SCSI in $Table) {
+            $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
+            $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
+            $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
+                key   = $Key
+                value = $Value
+            }
+            $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
+            $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
+            Start-Sleep 5
         }
-        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
-
-        # SCSI 0
-        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
-            key   = "scsi0.pciSlotNumber"
-            value = $scsi0NewSlotNumber
-        }
-        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
-        Start-Sleep 5
-
-        # SCSI 1
-        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
-            key   = "scsi1.pciSlotNumber"
-            value = $scsi1NewSlotNumber
-        }
-        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
-        Start-Sleep 5
-
-        # SCSI 2
-        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
-            key   = "scsi2.pciSlotNumber"
-            value = $scsi2NewSlotNumber
-        }
-        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
-        Start-Sleep 5
-
-        # SCSI 3
-        $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
-        $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
-        $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
-            key   = "scsi3.pciSlotNumber"
-            value = $scsi3NewSlotNumber
-        }
-        $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
-        $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
-        Start-Sleep 5
     }
 
     process {
@@ -428,6 +380,7 @@ function Add-Disks {
 
         foreach ($Disk in $Table) {
             try {
+                Write-Output "---Adding disk $($Disk.DiskNumber) of size: $($Disk.DiskSize)GB."
                 if ($EagerZeroedThick) {
                     $VM | New-HardDisk -CapacityGB $Disk.DiskSize -StorageFormat EagerZeroedThick -ErrorAction Stop | Out-Null
                 } elseif (!$EagerZeroedThick) {
