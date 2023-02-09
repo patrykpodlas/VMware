@@ -3,6 +3,7 @@ function Add-Disks {
 .SYNOPSIS
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and unit numbers.
 .DESCRIPTION
+    Adds 3 additional SCSI ParaVirtual controllers.
     Adds virtual disks to vSphere VM and configures them with appropriate controllers and keys.
     The script looks for the specified VM, and sets up configuration for each added disk, distributing them amongst all added SCSI controllers, each disk is added one by one and then configured with the first available controller and unit number.
     Supports a maximum of 15 disks added.
