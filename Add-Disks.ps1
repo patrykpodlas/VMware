@@ -117,8 +117,8 @@ function Add-Disks {
         $VM | New-HardDisk -CapacityGB 3 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
 
         # Power on the VM and remove the temporary disks - this is necessary because if the VM is powered off, it will remove the SCSI controllers as well.
-        Write-Output "---Starting the VM"
-        $VM | Start-VM -Confirm:$false
+        Write-Output "---Starting the virtual machine."
+        $VM | Start-VM -Confirm:$false | Out-Null
         while ((Get-VM -Name $VMName).PowerState -eq "PoweredOff") {
             Write-Output "---Waiting 5 seconds for $VMName to start."
             Start-Sleep 5
@@ -132,7 +132,7 @@ function Add-Disks {
         if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
             Write-Output "---Shutting down the Virtual Machine: $VMName."
             try {
-                $VM | Shutdown-VMGuest -Confirm:$false -ErrorAction Stop
+                $VM | Shutdown-VMGuest -Confirm:$false -ErrorAction Stop | Out-Null
                 while ((Get-VM -Name $VMName).PowerState -eq "PoweredOn") {
                     Write-Output "---Waiting 5 seconds for $VMName to stop."
                     Start-Sleep 5
@@ -140,7 +140,7 @@ function Add-Disks {
             } catch {
                 # Add error handling for "Operation "Shutdown VM guest." failed for VM <NMName> for the following reason: Cannot complete operation because VMware Tools is not running in this virtual machine."
                 Write-Output "---Virtual Machine: $VMname failed to shutdown gracefully, forcing power off."
-                $VM | Stop-VM -Confirm:$false
+                $VM | Stop-VM -Confirm:$false | Out-Null
             }
         } elseif ($VM.PowerState -eq "PoweredOn" -and !$Confirm) {
             Write-Output "Virtual Machine: $VMName must be powered off before continuing! Stopping the script!"
