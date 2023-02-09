@@ -154,6 +154,15 @@ function Add-Disks {
 
         # Configure the correct order of the SCSI controllers.
         Write-Output "---Reconfiguring the controllers with appropriate SCSI slot numbers."
+
+        $Table = @(
+            @{SCSI = "0"; SlotNumber = "scsi0NewSlotNumber"; Value = "160" },
+            @{SCSI = "1"; SlotNumber = "scsi1NewSlotNumber"; Value = "192" },
+            @{SCSI = "2"; SlotNumber = "scsi2NewSlotNumber"; Value = "224" },
+            @{SCSI = "3"; SlotNumber = "scsi3NewSlotNumber"; Value = "256" }
+        ) | ForEach-Object { New-Object object | Add-Member -NotePropertyMembers $_ -PassThru }
+
+
         $intNewSlotNumber = 1184
         $scsi0NewSlotNumber = 160
         $scsi1NewSlotNumber = 192
