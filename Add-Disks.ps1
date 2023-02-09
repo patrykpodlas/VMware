@@ -128,7 +128,7 @@ function Add-Disks {
         $VM | Get-HardDisk | Select-Object -Skip 1 | Remove-HardDisk -Confirm:$false -DeletePermanently ; Start-Sleep -Seconds 5
 
         # Allow the virtual machine to power on completely to attempt graceful shutdown.
-        Write-Output "---Allowing $VMName to power on completely to attempt gracefull shutdown."
+        Write-Output "---Allowing $VMName to power on completely to attempt graceful shutdown."
         Start-Sleep -Seconds 30
 
         # Shutdown the virtual machine once more
