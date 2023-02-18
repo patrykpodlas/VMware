@@ -87,6 +87,9 @@ function Add-Disks {
         if ($EagerZeroedThick) {
             $DiskCount -= 1
         }
+        # Temporary disk capacity in GB.
+        $TemporaryDiskCapacity = "1"
+        # Get the virtual machine object.
         $VM = Get-VM -Name $VMName -ErrorAction Stop
         # Shutdown the virtual machine
         if ($VM.PowerState -eq "PoweredOn" -and $Confirm) {
@@ -103,17 +106,25 @@ function Add-Disks {
                 $VM | Stop-VM -Confirm:$false
             }
         } elseif ($VM.PowerState -eq "PoweredOn" -and !$Confirm) {
-            Write-Output "Virtual Machine: $VMName must be powered off before continuing! Stopping the script!"
+            Write-Output "---Virtual Machine: $VMName must be powered off before continuing! Stopping the script!"
             Exit
         } elseif ($VM.PowerState -eq "PoweredOff") {
-            Write-Output "Virtual Machine: $VMName is already powered off."
+            Write-Output "---Virtual Machine: $VMName is already powered off."
         }
 
         # Add temporary disks with the controllers
-        Write-Output "---Adding 3 ParaVirtual SCSI controllers."
-        $VM | New-HardDisk -CapacityGB 1 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
-        $VM | New-HardDisk -CapacityGB 2 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
-        $VM | New-HardDisk -CapacityGB 3 | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1
+        if ($DiskCount -eq 1) {
+            Write-Output "---Adding 1 ParaVirtual SCSI controllers."
+            1..1 | ForEach-Object { $VM | New-HardDisk -CapacityGB $TemporaryDiskCapacity | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1 }
+        }
+        if ($DiskCount -eq 2) {
+            Write-Output "---Adding 2 ParaVirtual SCSI controllers."
+            1..2 | ForEach-Object { $VM | New-HardDisk -CapacityGB $TemporaryDiskCapacity | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1 }
+        }
+        if ($DiskCount -gt 2) {
+            Write-Output "---Adding 3 ParaVirtual SCSI controllers."
+            1..3 | ForEach-Object { $VM | New-HardDisk -CapacityGB $TemporaryDiskCapacity | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1 }
+        }
 
         # Power on the VM and remove the temporary disks - this is necessary because if the VM is powered off, it will remove the SCSI controllers as well.
         Write-Output "---Starting the virtual machine."
