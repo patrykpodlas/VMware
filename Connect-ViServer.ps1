@@ -9,8 +9,7 @@ Import-Module -Name "VMware.PowerCLI"
 Write-Output "---Setting PowerCLI configuration."
 Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP:$false -DisplayDeprecationWarnings:$false -InvalidCertificateAction Ignore -Confirm:$false
 # List environmental variables
-Write-Output "---Variables visible right now:"
-Get-ChildItem env: | Format-Table
+Write-Output "---Variables visible right now:" ; Get-ChildItem env: | Format-Table
 # Create credential Object
 Write-Output "---Setting up the credentials to login to vSphere using user: $env:env_vsphere_scripts_username, the credentials will be saved!"
 [SecureString]$secureString = $env:env_vsphere_scripts_password | ConvertTo-SecureString -AsPlainText -Force
