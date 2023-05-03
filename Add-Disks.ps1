@@ -121,7 +121,7 @@ function Add-Disks {
             Write-Output "---Adding 2 ParaVirtual SCSI controllers."
             1..2 | ForEach-Object { $VM | New-HardDisk -CapacityGB $TemporaryDiskCapacity | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1 }
         }
-        if ($DiskCount -gt 2) {
+        if ($DiskCount -ge 3) {
             Write-Output "---Adding 3 ParaVirtual SCSI controllers."
             1..3 | ForEach-Object { $VM | New-HardDisk -CapacityGB $TemporaryDiskCapacity | New-ScsiController -Type ParaVirtual | Out-Null -ErrorAction Stop ; Start-Sleep -Seconds 1 }
         }
@@ -178,8 +178,8 @@ function Add-Disks {
             $Config = New-Object VMware.Vim.VirtualMachineConfigSpec
             $Config.extraConfig = New-Object VMware.Vim.OptionValue[] (1)
             $Config.extraConfig[0] = New-Object VMware.Vim.OptionValue -Property @{
-                key   = $Key
-                value = $Value
+                key   = $SCSI.Key
+                value = $SCSI.Value
             }
             $viewVMToReconfig = Get-View -ViewType VirtualMachine -Property Name -Filter @{"Name" = $VMName }
             $viewVMToReconfig.ReconfigVM_Task($Config) | Out-Null
