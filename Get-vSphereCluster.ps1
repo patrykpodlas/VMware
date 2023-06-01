@@ -1,3 +1,4 @@
+#sign-me
 function Get-vSphereCluster {
     <#
     .SYNOPSIS
