@@ -1,3 +1,4 @@
+#sign-me
 function Add-Disks {
     <#
 .SYNOPSIS
